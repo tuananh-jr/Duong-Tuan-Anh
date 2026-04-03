@@ -1,93 +1,84 @@
-import math
 import tkinter as tk
 from tkinter import messagebox
+import math
 
-# Hàm kiểm tra
-def kiem_tra():
+def calculate_position():
     try:
-        xC = float(entry_xC.get())
-        yC = float(entry_yC.get())
-        R = float(entry_R.get())
-        xM = float(entry_xM.get())
-        yM = float(entry_yM.get())
+        # Lấy dữ liệu từ các ô nhập
+        xc = float(entry_xc.get())
+        yc = float(entry_yc.get())
+        r  = float(entry_r.get())
+        xm = float(entry_xm.get())
+        ym = float(entry_ym.get())
 
-        CM = math.sqrt((xM - xC)**2 + (yM - yC)**2)
+        if r < 0:
+            messagebox.showerror("Lỗi", "Bán kính R không được âm!")
+            return
 
-        if CM == R:
-            kq = "M nằm trên đường tròn"
-        elif CM < R:
-            kq = "M nằm trong đường tròn"
+        # Tính khoảng cách d từ tâm C đến điểm M
+        # Công thức: d = sqrt((xM - xC)^2 + (yM - yC)^2)
+        distance = math.sqrt((xm - xc)**2 + (ym - yc)**2)
+
+        # Xác định vị trí
+        if math.isclose(distance, r, rel_tol=1e-9):
+            result_text = "M nằm TRÊN đường tròn C()"
+            color = "#2980b9" # Xanh dương
+        elif distance < r:
+            result_text = "M nằm TRONG đường tròn C()"
+            color = "#27ae60" # Xanh lá
         else:
-            kq = "M nằm ngoài đường tròn"
+            result_text = "M nằm NGOÀI đường tròn C()"
+            color = "#e67e22" # Cam
 
-        ket_qua.set(kq)
+        # Hiển thị kết quả lên giao diện
+        label_res.config(text=result_text, fg=color)
+        label_dist.config(text=f"Khoảng cách d = {distance:.2f} (R = {r})")
 
-        # Vẽ hình
-        canvas.delete("all")
+    except ValueError:
+        messagebox.showerror("Lỗi nhập liệu", "Vui lòng chỉ nhập các chữ số!")
 
-        scale = 20  # tỷ lệ phóng to
-        offset = 200  # dịch tâm ra giữa canvas
-
-        # Tọa độ trên canvas
-        xC_draw = xC * scale + offset
-        yC_draw = -yC * scale + offset
-        xM_draw = xM * scale + offset
-        yM_draw = -yM * scale + offset
-
-        # Vẽ đường tròn
-        canvas.create_oval(
-            xC_draw - R*scale, yC_draw - R*scale,
-            xC_draw + R*scale, yC_draw + R*scale,
-            outline="blue"
-        )
-
-        # Vẽ tâm C
-        canvas.create_oval(
-            xC_draw-3, yC_draw-3, xC_draw+3, yC_draw+3,
-            fill="black"
-        )
-        canvas.create_text(xC_draw, yC_draw-10, text="C")
-
-        # Vẽ điểm M
-        canvas.create_oval(
-            xM_draw-3, yM_draw-3, xM_draw+3, yM_draw+3,
-            fill="red"
-        )
-        canvas.create_text(xM_draw, yM_draw-10, text="M")
-
-    except:
-        messagebox.showerror("Lỗi", "Nhập sai dữ liệu!")
-
-# Tạo cửa sổ
+# Khởi tạo cửa sổ chính
 root = tk.Tk()
-root.title("Bài 3 - Điểm và đường tròn")
+root.title("Circle Geometry Tool")
+root.geometry("400x450")
+root.configure(bg="#f5f6fa")
 
-# Nhập dữ liệu
-tk.Label(root, text="C(xC, yC):").grid(row=0, column=0)
-entry_xC = tk.Entry(root, width=5)
-entry_xC.grid(row=0, column=1)
-entry_yC = tk.Entry(root, width=5)
-entry_yC.grid(row=0, column=2)
+# Tiêu đề
+tk.Label(root, text="VỊ TRÍ ĐIỂM M & ĐƯỜNG TRÒN", font=("Arial", 14, "bold"), 
+         bg="#f5f6fa", fg="#2f3640").pack(pady=20)
 
-tk.Label(root, text="R:").grid(row=1, column=0)
-entry_R = tk.Entry(root, width=5)
-entry_R.grid(row=1, column=1)
+# Khung nhập liệu (Container)
+frame = tk.Frame(root, bg="#f5f6fa")
+frame.pack(padx=20)
 
-tk.Label(root, text="M(xM, yM):").grid(row=2, column=0)
-entry_xM = tk.Entry(root, width=5)
-entry_xM.grid(row=2, column=1)
-entry_yM = tk.Entry(root, width=5)
-entry_yM.grid(row=2, column=2)
+def create_input(label_text, default_val):
+    row = tk.Frame(frame, bg="#f5f6fa")
+    row.pack(fill="x", pady=5)
+    tk.Label(row, text=label_text, width=15, anchor="w", bg="#f5f6fa", font=("Arial", 10)).pack(side="left")
+    entry = tk.Entry(row, font=("Arial", 10), bd=1, relief="solid")
+    entry.insert(0, default_val)
+    entry.pack(side="right", expand=True, fill="x")
+    return entry
 
-# Nút bấm
-tk.Button(root, text="Kiểm tra", command=kiem_tra).grid(row=3, column=1)
+entry_xc = create_input("Tâm xC:", "0.5")
+entry_yc = create_input("Tâm yC:", "4.3")
+entry_r  = create_input("Bán kính R:", "7.4")
+entry_xm = create_input("Điểm xM:", "3.2")
+entry_ym = create_input("Điểm yM:", "6.5")
 
-# Kết quả
-ket_qua = tk.StringVar()
-tk.Label(root, textvariable=ket_qua, fg="blue").grid(row=4, column=1)
+# Nút tính toán
+btn_calc = tk.Button(root, text="KIỂM TRA VỊ TRÍ", command=calculate_position,
+                     bg="#8e44ad", fg="white", font=("Arial", 11, "bold"),
+                     padx=20, pady=10, bd=0, cursor="hand2")
+btn_calc.pack(pady=25)
 
-# Canvas vẽ
-canvas = tk.Canvas(root, width=400, height=400, bg="white")
-canvas.grid(row=5, column=0, columnspan=3)
+# Vùng hiển thị kết quả
+label_res = tk.Label(root, text="", font=("Arial", 12, "bold"), bg="#f5f6fa")
+label_res.pack()
+
+label_dist = tk.Label(root, text="", font=("Arial", 9), bg="#f5f6fa", fg="#7f8c8d")
+label_dist.pack(pady=5)
+
+root.mainloop()
 
 root.mainloop()
